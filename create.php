@@ -1,25 +1,39 @@
 <?php
-include 'config/db.php'; 
+include 'config/db.php'; // ✅ database connection
 
 $popupType = '';
 $popupMessage = '';
 
+// ✅ Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $student_no = $_POST['student_no'];
-    $fullname   = $_POST['fullname'];
-    $branch     = $_POST['branch'];
-    $email      = $_POST['email'];
-    $contact    = $_POST['contact'];
+    $student_no = trim($_POST['student_no']);
+    $fullname   = trim($_POST['fullname']);
+    $branch     = trim($_POST['branch']);
+    $email      = trim($_POST['email']);
+    $contact    = trim($_POST['contact']);
 
-    $query = "INSERT INTO students (student_no, fullname, branch, email, contact)
-              VALUES ('$student_no', '$fullname', '$branch', '$email', '$contact')";
-
-    if (mysqli_query($conn, $query)) {
-        $popupType = 'success';
-        $popupMessage = 'Student added successfully!';
-    } else {
+    // ✅ Validation checks
+    if (empty($student_no) || empty($fullname) || empty($branch) || empty($email) || empty($contact)) {
         $popupType = 'error';
-        $popupMessage = 'Error adding student: ' . mysqli_error($conn);
+        $popupMessage = '⚠️ All fields are required!';
+    } elseif (!is_numeric($contact)) {
+        $popupType = 'error';
+        $popupMessage = '⚠️ Contact number must be numeric only!';
+    } elseif (strlen($contact) != 11 && strlen($contact) != 12) {
+        $popupType = 'error';
+        $popupMessage = '⚠️ Contact number must be 11 or 12 digits long!';
+    } else {
+        // ✅ Insert data if valid
+        $query = "INSERT INTO students (student_no, fullname, branch, email, contact)
+                  VALUES ('$student_no', '$fullname', '$branch', '$email', '$contact')";
+
+        if (mysqli_query($conn, $query)) {
+            $popupType = 'success';
+            $popupMessage = '✅ Student added successfully!';
+        } else {
+            $popupType = 'error';
+            $popupMessage = '❌ Error adding student: ' . mysqli_error($conn);
+        }
     }
 }
 ?>
@@ -43,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         margin: 0;
         padding: 0;
     }
+
     body::before {
         content: "";
         position: fixed;
@@ -50,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         background: rgba(0,0,0,0.55);
         z-index: 0;
     }
+
     .container {
         position: relative;
         z-index: 1;
@@ -62,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         text-align: center;
         backdrop-filter: blur(8px);
     }
+
     h2 { margin-bottom: 18px; }
 
     form {
@@ -79,7 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         background: rgba(255,255,255,0.85);
         color: #000;
         font-size: 15px;
-        text-align: left;
         box-sizing: border-box;
     }
 
@@ -94,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         cursor: pointer;
         transition: 0.3s;
     }
+
     button:hover { background: #27ae60; }
 
     .back-link {
@@ -103,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         text-decoration: none;
     }
 
+    /* ===== Popup Styles ===== */
     .popup {
         display: none;
         position: fixed;
@@ -168,6 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <a class="back-link" href="index.php">🏠 Back to Home</a>
     </div>
 
+    <!-- Wanderer Popup -->
     <div class="popup" id="popup">
         <div class="popup-content" id="popup-content">
             <img id="popup-img" src="" alt="">
@@ -193,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         text.innerHTML = popupMessage;
         popup.style.display = 'flex';
 
+        // Auto close after 3 seconds
         setTimeout(() => {
             popup.style.display = 'none';
         }, 3000);
